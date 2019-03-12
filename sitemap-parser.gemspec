@@ -9,7 +9,8 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT"]
   s.files = [ "lib/sitemap-parser.rb" ]
   s.add_dependency("nokogiri","~> 1.6")
-  s.add_dependency("typhoeus", ">= 0.6", "< 2.0")
+  s.add_dependency("faraday", "~> 0.9.0")
+  s.add_dependency("faraday_middleware", "~> 0.13.1")
   s.add_development_dependency("rake", "~> 10.4")
   s.add_development_dependency("shoulda", "~> 3.5")
   s.add_development_dependency("bundler", "~> 1.6")

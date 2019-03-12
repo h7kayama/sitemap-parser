@@ -1,26 +1,28 @@
 require 'nokogiri'
-require 'typhoeus'
+require 'faraday'
+require 'faraday_middleware'
 
 class SitemapParser
 
   def initialize(url, opts = {})
     @url = url
-    @options = {:followlocation => true, :recurse => false, :url_regex => nil}.merge(opts)
+    @options = {:recurse => false, :url_regex => nil}.merge(opts)
   end
 
   def raw_sitemap
     @raw_sitemap ||= begin
       if @url =~ /\Ahttp/i
         request_options = @options.dup.tap { |opts| opts.delete(:recurse); opts.delete(:url_regex) }
-        request = Typhoeus::Request.new(@url, request_options)
-        request.on_complete do |response|
-          if response.success?
-            return response.body
-          else
-            raise "HTTP request to #{@url} failed"
-          end
+        request = Faraday.new(@url, request_options){|request|
+          request.use FaradayMiddleware::FollowRedirects
+          request.adapter :net_http
+        }
+        response = request.get
+        if response.success?
+          response.body
+        else
+          raise "HTTP request to #{@url} failed"
         end
-        request.run
       elsif File.exist?(@url) && @url =~ /[\\\/]sitemap\.xml\Z/i
         open(@url) { |f| f.read }
       end
